@@ -1,0 +1,17 @@
+[package]
+name = "remoteid-sentinel"
+version = "0.1.0"
+authors = ["Matt Busel <matt@busel.dev>"]
+edition = "2021"
+rust-version = "1.70"
+description = "Receive-only flood and spoof analyzer for counter-UAS sensors: over Remote ID broadcasts a sensor has already decoded, it scores how badly the airspace is flooded with fakes and points security at the track most likely to be the one real drone. Analysis only, no radio and no transmit path."
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/Mattbusel/remoteid-sentinel"
+keywords = ["remote-id", "drone", "counter-uas", "spoofing", "flood"]
+categories = ["aerospace::drones", "algorithms"]
+
+[dependencies]
+remoteid = { version = "0.3.3", default-features = false, features = ["std"] }
+
+[dev-dependencies]
+remoteid-scenario = { path = "../remoteid-scenario" }
