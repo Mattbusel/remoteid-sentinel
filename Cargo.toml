@@ -14,4 +14,4 @@ categories = ["aerospace::drones", "algorithms"]
 remoteid = { version = "0.3.3", default-features = false, features = ["std"] }
 
 [dev-dependencies]
-remoteid-scenario = { path = "../remoteid-scenario" }
+remoteid-scenario = { version = "0.1.0", path = "../remoteid-scenario" }
