@@ -86,6 +86,64 @@ if field.flood.level == FloodLevel::Flooded {
 
 Both drive `remoteid`'s own tracker and trust state, so per-unit grading is exactly what the library would produce.
 
+## Is that drone a threat to my site, right now?
+
+Finding the one real drone in the flood is the first question. The next two are
+the ones a site operator actually acts on, and the `zone` module answers them
+over the positions a sensor already decoded (receive-only geometry, no radio):
+
+1. **Protected-zone breach.** Give it a protected area (a circle around a point,
+   or a polygon perimeter) and it reports, per track, whether the drone is
+   **inside** the zone or **approaching** it, with the distance to the boundary,
+   the closing speed, and an estimated time to the boundary. That is "a drone
+   breached the perimeter" and "a drone is 250 m out, closing at 12 m/s, 21 s to
+   the fence," not "drones exist."
+2. **Loitering / surveillance.** It flags a track that has been **circling or
+   hovering** within a small radius of one point for longer than a threshold:
+   "this drone has been orbiting the facility for three minutes," with the
+   centre it is holding over, the orbit radius, and how long it has held.
+
+The closing speed is derived from the track's own position history, not from the
+reported speed field, so a spoofed speed cannot hide an approach. The loiter
+check reports the longest run of fixes that stay inside the radius, so a drone
+that transits through is not mistaken for one that stays.
+
+```rust
+use remoteid_sentinel::{
+    zone_alerts, loiter_alerts, ProtectedZone, TrackPath, ZoneConfig, LoiterConfig,
+};
+
+// Decode the already-received frames into one position path per track.
+let paths = TrackPath::from_observations(obs);
+
+// Run the threat checks on the tracks the flood analysis did not flag, so the
+// alert is about a real aircraft rather than a spoofed one.
+let real: Vec<TrackPath> = paths
+    .into_iter()
+    .filter(|p| trusted_transmitters.contains(&p.transmitter))
+    .collect();
+
+// A 300 m no-fly circle around the control tower.
+let zone = ProtectedZone::circle(40.7128, -74.0060, 300.0);
+for a in zone_alerts(&real, &zone, &ZoneConfig::default()) {
+    // a.status (inside / approaching), a.distance_m, a.closing_speed_mps, a.eta_s
+}
+
+for a in loiter_alerts(&real, &LoiterConfig::default()) {
+    // a.center, a.radius_m, a.duration_ms: "orbiting for a.duration_ms over a.center"
+}
+```
+
+`ProtectedZone::contains` and `distance_to_boundary_m` are also public, so you
+can draw the geometry yourself. Distances are haversine on the mean sphere;
+polygon edge distance is computed in a local metre frame, accurate for the
+site-scale zones (metres to a few kilometres) this is built for.
+
+`ZoneConfig` sets the approach band (how far out a closing track still alerts,
+default 500 m) and the minimum closing speed (default 0.5 m/s). `LoiterConfig`
+sets the loiter radius (default 150 m), the minimum hold time (default two
+minutes) and the minimum fix count (default 5).
+
 ## Configuration
 
 `FieldConfig` passes a `remoteid::TrustConfig` straight through for per-unit grading and exposes the thresholds for the field signatures: the count-spike window and minimum, the per-source fan-out minimum, the RSSI cluster width and minimum, the serial-template group size, the operator co-location minimum, and `requires_auth` (off by default, since almost no aircraft flying today sign; turn it on only where every legitimate operator in the protected volume is known to authenticate).

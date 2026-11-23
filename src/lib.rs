@@ -47,6 +47,14 @@
 //! Both drive [`remoteid`]'s own tracker and trust state, so per-unit grading
 //! matches the library exactly.
 //!
+//! Once the real track is in hand, the [`zone`] module answers what the site
+//! operator asks next: [`zone_breach`] reports whether a tracked drone is
+//! inside a protected area or approaching it (with distance, closing speed and
+//! a time-to-boundary estimate), and [`loiter_check`] flags a drone that has
+//! been circling or hovering over one point for longer than a threshold. Both
+//! are receive-only geometry over the positions a sensor already decoded; feed
+//! them the tracks the flood analysis did not flag.
+//!
 //! # Example
 //!
 //! ```no_run
@@ -74,7 +82,12 @@
 pub mod analyze;
 pub mod config;
 pub mod signature;
+pub mod zone;
 
 pub use analyze::{FieldAssessment, FloodLevel, FloodVerdict, TrackScore};
 pub use config::FieldConfig;
 pub use signature::{Signature, SignatureSet};
+pub use zone::{
+    loiter_alerts, loiter_check, zone_alerts, zone_breach, Fix, LoiterAlert, LoiterConfig,
+    ProtectedZone, TrackPath, ZoneAlert, ZoneConfig, ZoneStatus,
+};
