@@ -10,6 +10,10 @@
 [![docs.rs](https://img.shields.io/docsrs/remoteid-sentinel)](https://docs.rs/remoteid-sentinel)
 [![license](https://img.shields.io/crates/l/remoteid-sentinel.svg)](#license)
 
+## Watch: 45 seconds, what this actually does
+
+[![Watch the film](docs/film-poster.png)](https://mattbusel.github.io/drone-demos/watch.html)
+
 Receive-only flood and spoof analysis for counter-UAS sensors. Over the Remote ID broadcasts your sensor has **already received and decoded**, it answers the two questions an operator at an airport, stadium, prison or base is actually asking: is this airspace flooded with fakes, and if one of these is a real drone, which one? It is built directly on the published [`remoteid`](https://crates.io/crates/remoteid) 0.3.3 decoder, so every per-unit judgement is the library's own graded `Assessment`; the sentinel only adds the cross-track signatures that appear when you look at the whole field at once. There is no radio and no transmit path in the crate: it reads verdicts, it never emits RF. Detection logic is exercised against the [`remoteid-scenario`](https://crates.io/crates/remoteid-scenario) sample suite in `tests/`.
 
 ## What it answers
